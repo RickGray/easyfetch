@@ -29,6 +29,9 @@ if __name__ == '__main__':
     parse.add_argument('-s', dest='search_string', type=str,
                        help='The keyword searched')
 
+    parse.add_argument('-l', dest='limit_number', type=int, default=100,
+                       help='Limit number of the results')
+
     parse.add_argument('--version', action='version',
                        version='%(prog)s 1.0')
 
@@ -46,10 +49,10 @@ if __name__ == '__main__':
 
     if engine == 'google':
         print '[-] Searching in Google:'
-        search = search_google(word, 500, 0)
+        search = search_google(word, args.limit_number, 0)
         search.process()
 
     elif engine == 'baidu':
         print '[-] Searching in Baidu:'
-        search = search_baidu(word, 500, 0)
+        search = search_baidu(word, args.limit_number, 0)
         search.process()

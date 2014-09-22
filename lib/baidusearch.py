@@ -36,3 +36,9 @@ class search_baidu:
             time.sleep(1)
             print "\tSearching " + str(self.counter) + " results..."
             self.counter += 100
+
+        #print self.totalresults
+
+
+    def get_url(self):
+        pass
