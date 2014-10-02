@@ -29,7 +29,7 @@ if __name__ == '__main__':
     parse.add_argument('-s', dest='search_string', type=str,
                        help='The keyword searched')
 
-    parse.add_argument('-l', dest='limit_number', type=int, default=100,
+    parse.add_argument('-l', dest='limit_number', type=int, default=0,
                        help='Limit number of the results')
 
     parse.add_argument('--version', action='version',
