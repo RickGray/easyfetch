@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
+from lxml import html
 import httplib
 import sys
 import re
@@ -34,8 +35,18 @@ class search_google:
             self.do_search()
             # more = self.check_next()
             time.sleep(1)
-            print "\tSearching " + str(self.counter) + " results..."
+            print "[-] Searching " + str(self.counter + 100) + " results..."
             self.counter += 100
 
     def get_url(self):
-        pass
+        urls = []
+        if self.totalresults:
+            for c in self.totalresults:
+                doc = html.document_fromstring(c)
+                pre_urls = doc.xpath('//div[@id="ires"]/ol/div[@class="srg"]/li[@class="g"/div[@class="rc"]/a/@href')
+
+                if pre_urls:
+                    for url in pre_urls:
+                        urls.append(url)
+
+        return urls

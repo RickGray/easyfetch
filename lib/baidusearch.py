@@ -32,11 +32,15 @@ class search_baidu:
         self.totalresults.append(self.results)
 
     def process(self):
+        comfirm = raw_input('[!] Warning: processing will cost long time, continue? (yes/no): ')
+        if comfirm.lower() != 'yes' and comfirm.lower() != 'y':
+            sys.exit()
+
         while self.counter <= self.limit and self.counter <= 1000:
             self.do_search()
             # more = self.check_next()
             time.sleep(1)
-            print "\tSearching " + str(self.counter) + " results..."
+            print "[-] Searching " + str(self.counter + 100) + " results..."
             self.counter += 100
 
         self.get_url()
@@ -49,13 +53,14 @@ class search_baidu:
                 pre_urls = doc.xpath('//div[@class="result c-container "]/h3/a/@href')
 
                 if pre_urls:
-                    urls = []
                     for url in pre_urls:
                         try:
-                            u = urllib2.urlopen(url, timeout=5).url
+                            u = urllib2.urlopen(url, timeout=3).url
                         except socket.timeout:
                             continue
                         except urllib2.HTTPError:
+                            continue
+                        except urllib2.URLError:
                             continue
 
                         urls.append(u)
