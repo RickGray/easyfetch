@@ -36,14 +36,12 @@ class search_baidu:
         if comfirm.lower() != 'yes' and comfirm.lower() != 'y':
             sys.exit()
 
-        while self.counter <= self.limit and self.counter <= 1000:
+        while (self.counter + 100) <= self.limit and self.counter <= 1000:
             self.do_search()
             # more = self.check_next()
             time.sleep(1)
             print "[-] Searching " + str(self.counter + 100) + " results..."
             self.counter += 100
-
-        self.get_url()
 
     def get_url(self):
         urls = []
@@ -55,8 +53,10 @@ class search_baidu:
                 if pre_urls:
                     for url in pre_urls:
                         try:
-                            u = urllib2.urlopen(url, timeout=3).url
+                            u = urllib2.urlopen(url, timeout=2).url
                         except socket.timeout:
+                            continue
+                        except socket.error:
                             continue
                         except urllib2.HTTPError:
                             continue

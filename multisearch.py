@@ -28,7 +28,7 @@ if __name__ == '__main__':
                        help='search engine (google,bing,baidu,all)')
     parse.add_argument('-s', dest='search_string', type=str,
                        help='the keyword searched')
-    parse.add_argument('-l', dest='limit_number', type=int, default=0,
+    parse.add_argument('-l', dest='limit_number', type=int, default=100,
                        help='limit number of the results')
     parse.add_argument('-o', dest='outfile', type=str,
                        help='restore the results from searching engine')
@@ -36,6 +36,9 @@ if __name__ == '__main__':
                        version='%(prog)s 1.0')
 
     args = parse.parse_args()
+
+    if args.search_engine is None:
+        sys.exit()
 
     if args.search_engine not in ('google', 'bing', 'baidu', 'all'):
         print 'Invalid search engine, try with: google, bing, baidu or all'

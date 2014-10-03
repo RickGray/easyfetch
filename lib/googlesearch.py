@@ -12,8 +12,8 @@ class search_google:
         self.word = word
         self.results = ""
         self.totalresults = []
-        self.server = "www.google.com"
-        self.hostname = "www.google.com"
+        self.server = "www.baidu.com"
+        self.hostname = "www.baidu.com"
         self.userAgent = "(Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0)"
         self.quantity = "100"
         self.limit = limit
@@ -31,7 +31,7 @@ class search_google:
         self.totalresults.append(self.results)
 
     def process(self):
-        while self.counter <= self.limit and self.counter <= 1000:
+        while (self.counter + 100) <= self.limit and self.counter <= 1000:
             self.do_search()
             # more = self.check_next()
             time.sleep(1)
@@ -43,8 +43,8 @@ class search_google:
         if self.totalresults:
             for c in self.totalresults:
                 doc = html.document_fromstring(c)
-                pre_urls = doc.xpath('//div[@id="ires"]/ol/div[@class="srg"]/li[@class="g"/div[@class="rc"]/a/@href')
-
+                pre_urls = doc.xpath('//div[@id="ires"]/ol/div[@class="srg"]/li[@class="g"]/div[@class="rc"]/h3/a/@href')
+                print pre_urls
                 if pre_urls:
                     for url in pre_urls:
                         urls.append(url)
