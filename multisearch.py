@@ -69,3 +69,9 @@ if __name__ == '__main__':
         outfile = open(args.outfile, 'w')
         for item in urls:
             outfile.write(item + '\n')
+
+    print '============='
+    print 'Result Urls'
+    print '============='
+    for url in urls:
+        print url
