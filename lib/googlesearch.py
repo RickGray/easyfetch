@@ -20,9 +20,9 @@ class search_google:
         self.counter = start
 
     def do_search(self):
-        h = httplib.HTTP(self.server)
+        h = httplib.HTTPS(self.server)
         h.putrequest('GET', "/search?num=" + self.quantity + "&start=" + str(
-            self.counter) + "&hl=en&meta=&q=" + self.word)
+            self.counter) + "&hl=en&meta=&q=" + self.word + "&gws_rd=ssl")
         h.putheader('Host', self.hostname)
         h.putheader('User-agent', self.userAgent)
         h.endheaders()
@@ -35,7 +35,7 @@ class search_google:
             self.do_search()
             # more = self.check_next()
             time.sleep(1)
-            print "[-] Searching " + str(self.counter + 100) + " results..."
+            print "[-] Searching " + str(self.counter + 100) + " results from \"Google\"..."
             self.counter += 100
 
     def get_url(self):
