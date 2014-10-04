@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-import argparse
-import sys
 from lib.googlesearch import *
 from lib.baidusearch import *
+import argparse
+import sys
+
 
 def logo():
     print "\n******************************************************************"
@@ -70,8 +71,8 @@ if __name__ == '__main__':
         for item in urls:
             outfile.write(item + '\n')
 
-    print '============='
-    print 'Result Urls'
-    print '============='
-    for url in urls:
-        print url
+    print '\n[+] Urls found:'
+    print '-----------------'
+    if urls:
+        for url in urls:
+            print url

@@ -12,8 +12,8 @@ class search_google:
         self.word = word
         self.results = ""
         self.totalresults = []
-        self.server = "www.baidu.com"
-        self.hostname = "www.baidu.com"
+        self.server = "www.google.com"
+        self.hostname = "www.google.com"
         self.userAgent = "(Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0)"
         self.quantity = "100"
         self.limit = limit
@@ -22,7 +22,7 @@ class search_google:
     def do_search(self):
         h = httplib.HTTP(self.server)
         h.putrequest('GET', "/search?num=" + self.quantity + "&start=" + str(
-            self.counter) + "&hl=en&meta=&q=%40\"" + self.word + "\"")
+            self.counter) + "&hl=en&meta=&q=" + self.word)
         h.putheader('Host', self.hostname)
         h.putheader('User-agent', self.userAgent)
         h.endheaders()
@@ -44,7 +44,7 @@ class search_google:
             for c in self.totalresults:
                 doc = html.document_fromstring(c)
                 pre_urls = doc.xpath('//div[@id="ires"]/ol/div[@class="srg"]/li[@class="g"]/div[@class="rc"]/h3/a/@href')
-                print pre_urls
+
                 if pre_urls:
                     for url in pre_urls:
                         urls.append(url)
