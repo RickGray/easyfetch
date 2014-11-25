@@ -53,7 +53,7 @@ if __name__ == '__main__':
 
     if engine == 'google':
         print '[-] Searching in Google:'
-        search = search_google(word, args.limit_number, 0)
+        search = SearchGoogle(word, args.limit_number, 0)
         search.process()
         urls = search.get_url()
     elif engine == 'baidu':
