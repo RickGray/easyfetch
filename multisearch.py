@@ -14,9 +14,9 @@ def logo():
     print "  / /\  /\ \| |_| || || |_| |  \__ |  __/ ( | | |  |  /__| | | |  "
     print " /_/  \/  \_\_____/|_| \__|_|  |___/\___|\__,_|_|   \___/|_| |_|  "
     print "                                                                  "
-    print "                     MultiSearch Ver. 1.0                         "
+    print "                     MultiSearch Ver. 1.1                         "
     print "                       Coded by RickGray                          "
-    print "                    rickchen.vip@gmail.com                        "
+    print "                   rickchen.vip<at>gmail.com                      "
     print "                                                                  "
     print "******************************************************************\n"
 
@@ -26,7 +26,7 @@ if __name__ == '__main__':
 
     parse = argparse.ArgumentParser(description='Multi Search Parse.')
     parse.add_argument('-b', dest='search_engine', type=str,
-                       help='search engine (google,bing,baidu,all)')
+                       help='search engine (google,googlecse,baidu,all)')
     parse.add_argument('-s', dest='search_string', type=str,
                        help='the keyword searched')
     parse.add_argument('-l', dest='limit_number', type=int, default=100,
@@ -34,15 +34,15 @@ if __name__ == '__main__':
     parse.add_argument('-o', dest='outfile', type=str,
                        help='restore the results from searching engine')
     parse.add_argument('--version', action='version',
-                       version='%(prog)s 1.0')
+                       version='%(prog)s 1.1')
 
     args = parse.parse_args()
 
     if args.search_engine is None:
         sys.exit()
 
-    if args.search_engine not in ('google', 'bing', 'baidu', 'all'):
-        print 'Invalid search engine, try with: google, bing, baidu or all'
+    if args.search_engine not in ('google', 'googlecse', 'baidu', 'all'):
+        print 'Invalid search engine, try with: google, googlecse, baidu or all'
         sys.exit()
     engine = args.search_engine
 
@@ -56,23 +56,45 @@ if __name__ == '__main__':
         search = SearchGoogle(word, args.limit_number, 0)
         search.process()
         urls = search.get_url()
+        hosts = search.get_host()
+
+    elif engine == 'googlecse':
+        print '[-] Searching in Google CSE:'
+        search = SearchGoogle(word, args.limit_number, 0)
+        search.process_cse()
+        urls = search.get_url_cse()
+        hosts = search.get_host_cse()
+
     elif engine == 'baidu':
         print '[-] Searching in Baidu:'
-        search = search_baidu(word, args.limit_number, 0)
+        search = SearchBaidu(word, args.limit_number, 0)
         search.process()
         urls = search.get_url()
-    elif engine == 'bing':
-        pass
+        hosts = search.get_host()
+
     else:
         sys.exit()
 
     if args.outfile is not None:
         outfile = open(args.outfile, 'w')
+
+        outfile.write('[+] Urls found:\n-----------------\n')
         for item in urls:
             outfile.write(item + '\n')
+        outfile.write('\n[+] Total hosts:\n-----------------\n')
+        for item in hosts:
+            outfile.write(item + '\n')
+
+        outfile.close()
 
     print '\n[+] Urls found:'
     print '-----------------'
     if urls:
         for url in urls:
             print url
+
+    print '\n[+] Total hosts:'
+    print '-----------------'
+    if hosts:
+        for host in hosts:
+            print host
