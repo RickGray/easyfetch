@@ -66,6 +66,25 @@ class SearchGoogle(object):
         response = requests.get(request_url, headers=default_headers, allow_redirects=False)
         status_code = response.status_code
         headers = response.headers
+
+        if status_code == 302:
+            if 'location' in headers:
+                redirect_url = headers['location']
+                m = re.compile(r'http[s]?://([^/]*)/?').findall(redirect_url)
+                if m:
+                    google_domain = m[0]
+
+                    request_url = 'https://' + google_domain + '/search?' \
+                                  + 'num=' + self.number \
+                                  + '&hl=en' \
+                                  + '&safe=off' \
+                                  + '&start=' + str(self.start) \
+                                  + '&q=' + self.word \
+                                  + '&gws_rd=ssl'
+
+                    headers['Host'] = google_domain
+                    response = requests.get(request_url, headers=default_headers, allow_redirects=False)
+
         content = response.content
 
         self.results = content
@@ -185,5 +204,3 @@ if __name__ == '__main__':
 
     keyword = sys.argv[1]
     limitnum = sys.argv[2]
-
-    search = SearchGoogle(keyword, limitnum)
