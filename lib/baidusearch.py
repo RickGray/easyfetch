@@ -1,70 +1,98 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from lxml import html
-from multiprocessing.dummy import Pool as ThreadPool
-import socket
-import httplib, urllib2
+
 import sys
 import re
-import time
+import requests
+
+from termcolor import cprint
+from lxml import html
+from multiprocessing.dummy import Pool as ThreadPool
 
 
-class search_baidu:
-    def __init__(self, word, limit, start):
+# default headers for each request with google search
+default_headers = {
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3',
+    'Connection': 'keep-alive',
+    'Host': 'www.baidu.com',
+    'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.10; rv:31.0) Gecko/20100101 Firefox/31.0'
+}
+
+
+class SearchBaidu(object):
+    def __init__(self, word, limit, start=0):
+        """
+        :param word: search keyword
+        :param limit: maximum to query
+        :param start: results offset, default start 0
+        :return:
+        """
         self.word = word
-        self.results = ""
-        self.totalresults = []
-        self.server = "www.baidu.com"
-        self.hostname = "www.baidu.com"
-        self.userAgent = "(Mozilla/5.0 (Macintosh; Intel Mac OS X 10.9; rv:32.0) Gecko/20100101 Firefox/32.0)"
-        self.quantity = "100"
+        self.number = '100'  # baidu.com limits the maximum number of each query
+        self.start = start
         self.limit = limit
-        self.counter = start
+        self.headers = default_headers
+
+        self.results = ''
+        self.totalresults = []
+
+        self.urls_buff = []
 
     def do_search(self):
-        h = httplib.HTTPS(self.server)
-        h.putrequest('GET', "/s?wd=" + self.word + "&pn=" + str(
-            self.counter) * 100 + "&oq=" + self.word + "&rn=" + self.quantity + "&ie=utf-8")
-        h.putheader('Host', self.hostname)
-        h.putheader('User-agent', self.userAgent)
-        h.endheaders()
-        returncode, returnmsg, headers = h.getreply()
-        self.results = h.getfile().read()
+        request_url = 'http://www.baidu.com/s' \
+                      + '?wd=' + self.word \
+                      + '&pn=' + str(self.start) \
+                      + '&rn=' + self.number \
+                      + '&ie=utf-8'
+
+        response = requests.get(request_url, headers=default_headers, allow_redirects=False)
+        status_code = response.status_code
+        headers = response.headers
+        content = response.content
+
+        self.results = content
         self.totalresults.append(self.results)
 
     def process(self):
-        comfirm = raw_input('[!] Processing will cost long time, continue? (yes/no): ')
-        if comfirm.lower() != 'yes' and comfirm.lower() != 'y':
-            sys.exit()
+        # comfirm = raw_input('[!] Processing will cost long time, continue? (yes/no): ')
+        # if comfirm.lower() != 'yes' and comfirm.lower() != 'y':
+        #   sys.exit()
 
-        while (self.counter + 100) <= self.limit and self.counter <= 1000:
+        while (self.start + 100) <= self.limit and self.start <= 1000:
             self.do_search()
-            # more = self.check_next()
-            time.sleep(1)
-            print "[-] Searching " + str(self.counter + 100) + " results from \"Baidu\"..."
-            self.counter += 100
+            cprint('[-] Searching %s results from "Baidu"' % str(self.start + 100),
+                   'green', file=sys.stdout)
+            self.start += int(self.number)
 
     def get_url(self):
-        request_timeout = raw_input('[!] Please input timeout when resolve urls. (1-5): ').strip()
-        if request_timeout not in ('1', '2', '3', '4', '5'):
-            print '[!] Error input, processing will use default timeout: 2'
-            request_timeout = 2
-        else:
-            request_timeout = int(request_timeout)
-        thread_num = raw_input('[!] Please input thread number to start. (1-10): ').strip()
-        if thread_num not in ('1','2','3','4','5','6','7','8','9','10'):
-            print '[!] Error input, processing will use default thread number: 1'
-            thread_num = 1
-        else:
-            thread_num = int(thread_num)
+        # request_timeout = raw_input('[!] Please input timeout when resolve urls. (1-5): ').strip()
+        # if request_timeout not in [str(i) for i in range(1, 6)]:
+        #     print '[!] Error input, processing will use default timeout: 2'
+        #     request_timeout = 2
+        # else:
+        #     request_timeout = int(request_timeout)
+        # thread_num = raw_input('[!] Please input thread number to start. (1-10): ').strip()
+        # if thread_num not in [str(i) for i in range(1, 11)]:
+        #     print '[!] Error input, processing will use default thread number: 1'
+        #     thread_num = 1
+        # else:
+        #     thread_num = int(thread_num)
+
+        request_timeout = 2
+        thread_num = 10
 
         urls = []
         if self.totalresults:
+            cprint('[!] Parsing links, this will take some times.',
+                   'yellow', file=sys.stdout)
+
             for c in self.totalresults:
                 doc = html.document_fromstring(c)
                 pre_urls = doc.xpath('//div[@class="result c-container "]/h3/a/@href')
 
                 def resolve(pre_url):
+                    """
                     try:
                         url = urllib2.urlopen(pre_url, timeout=request_timeout).url
                     except socket.timeout:
@@ -75,7 +103,14 @@ class search_baidu:
                         return
                     except urllib2.URLError:
                         return
-                    except httplib.BadStatusLine:
+                    """
+
+                    try:
+                        response = requests.get(pre_url, headers=default_headers)
+                        url = response.url
+                    except requests.exceptions.ConnectionError:
+                        return
+                    except requests.exceptions.TooManyRedirects:
                         return
 
                     urls.append(url)
@@ -83,4 +118,28 @@ class search_baidu:
                 pool = ThreadPool(thread_num)
                 pool.map(resolve, pre_urls)
 
+        self.urls_buff = urls
+
         return urls
+
+    def get_host(self):
+        hosts = []
+        if self.urls_buff:
+            for url in self.urls_buff:
+                m = re.compile(r'http[s]?://([^/]*)/?').findall(url)
+                if m:
+                    host = m[0]
+                    hosts.append(host)
+                else:
+                    continue
+
+        return hosts
+
+
+if __name__ == '__main__':
+    if sys.argv.__len__() < 3:
+        cprint('Usage: %s <keyword> <limit>' % sys.argv[0])
+        sys.exit()
+
+    keyword = sys.argv[1]
+    limitnum = sys.argv[2]
