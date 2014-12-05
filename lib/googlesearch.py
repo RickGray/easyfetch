@@ -6,6 +6,7 @@ import re
 import json
 import sys
 
+from time import sleep
 from lxml import html
 from termcolor import cprint
 
@@ -48,6 +49,8 @@ class SearchGoogle(object):
         self.results = ''
         self.totalresults = []
         self.totalresults_cse = []
+
+        self.totalurls = []  # store the urls from results
 
     def do_search(self):
         """
@@ -117,6 +120,7 @@ class SearchGoogle(object):
         self.start = 0
         while (int(self.start) + int(self.number)) <= int(self.limit):
             self.do_search()
+            sleep(1)
             cprint('[+] Searching %s results from Google' % str(int(self.start) + int(self.number)),
                    'green', file=sys.stdout)
             self.start += int(self.number)
@@ -133,7 +137,6 @@ class SearchGoogle(object):
         urls = []
         if self.totalresults:
             for c in self.totalresults:
-                print c
                 doc = html.document_fromstring(c)
                 pre_urls = doc.xpath(
                     '//div[@id="ires"]/ol/div[@class="srg"]/li[@class="g"]/div[@class="rc"]/h3/a/@href')
@@ -141,6 +144,8 @@ class SearchGoogle(object):
                 if pre_urls:
                     for url in pre_urls:
                         urls.append(url)
+
+        self.totalurls.extend(urls)
 
         return urls
 
@@ -162,16 +167,18 @@ class SearchGoogle(object):
                 else:
                     continue
 
+        self.totalurls.extend(urls)
+
         return urls
 
     def get_host(self):
-        urls = self.get_url()
         hosts = []
-        if urls:
-            for url in urls:
-                m = re.compile(r'http[s]?://([^/]*/)').findall(url)
+        if self.totalurls:
+            for url in self.totalurls:
+                m = re.compile(r'http[s]?://([^&/?]*)/??').findall(url)
                 if m:
-                    hosts.append(m[0])
+                    host = m[0]
+                    hosts.append(host)
                 else:
                     continue
 
@@ -196,11 +203,3 @@ class SearchGoogle(object):
                     continue
 
         return hosts
-
-if __name__ == '__main__':
-    if sys.argv.__len__() < 3:
-        cprint('Usage: %s <keyword> <limit>' % sys.argv[0])
-        sys.exit()
-
-    keyword = sys.argv[1]
-    limitnum = sys.argv[2]

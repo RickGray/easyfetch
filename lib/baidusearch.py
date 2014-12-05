@@ -4,6 +4,7 @@
 import sys
 import re
 import requests
+import socket
 
 from termcolor import cprint
 from lxml import html
@@ -37,7 +38,7 @@ class SearchBaidu(object):
         self.results = ''
         self.totalresults = []
 
-        self.urls_buff = []
+        self.totalurls = []
 
     def do_search(self):
         request_url = 'http://www.baidu.com/s' \
@@ -59,7 +60,7 @@ class SearchBaidu(object):
         # if comfirm.lower() != 'yes' and comfirm.lower() != 'y':
         #   sys.exit()
 
-        while (self.start + 100) <= self.limit and self.start <= 1000:
+        while (self.start + 100) <= self.limit:
             self.do_search()
             cprint('[-] Searching %s results from "Baidu"' % str(self.start + 100),
                    'green', file=sys.stdout)
@@ -106,11 +107,15 @@ class SearchBaidu(object):
                     """
 
                     try:
-                        response = requests.get(pre_url, headers=default_headers)
+                        response = requests.get(pre_url, headers=default_headers, timeout=request_timeout)
                         url = response.url
                     except requests.exceptions.ConnectionError:
                         return
                     except requests.exceptions.TooManyRedirects:
+                        return
+                    except requests.exceptions.ReadTimeout:
+                        return
+                    except socket.error:
                         return
 
                     urls.append(url)
@@ -118,15 +123,15 @@ class SearchBaidu(object):
                 pool = ThreadPool(thread_num)
                 pool.map(resolve, pre_urls)
 
-        self.urls_buff = urls
+        self.totalurls.extend(urls)
 
         return urls
 
     def get_host(self):
         hosts = []
-        if self.urls_buff:
-            for url in self.urls_buff:
-                m = re.compile(r'http[s]?://([^/]*)/?').findall(url)
+        if self.totalurls:
+            for url in self.totalurls:
+                m = re.compile(r'http[s]?://([^&/?]*)/??').findall(url)
                 if m:
                     host = m[0]
                     hosts.append(host)
@@ -134,12 +139,3 @@ class SearchBaidu(object):
                     continue
 
         return hosts
-
-
-if __name__ == '__main__':
-    if sys.argv.__len__() < 3:
-        cprint('Usage: %s <keyword> <limit>' % sys.argv[0])
-        sys.exit()
-
-    keyword = sys.argv[1]
-    limitnum = sys.argv[2]
