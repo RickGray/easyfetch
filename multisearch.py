@@ -1,81 +1,120 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-from lib.googlesearch import *
-from lib.baidusearch import *
+
 import argparse
 import sys
 
+from lib.googlesearch import *
+from lib.baidusearch import *
+from lib.zoomeyesearch import *
+
 
 def logo():
-    print "\n******************************************************************"
+    print "__________________________________________________________________"
     print "                                                                  "
     print "    /\  /\         | || |_ \    ___  ___  __ _ _ __  ___ | |__    "
     print "   /  \/  \ | | | || || __| |  / __|/ _ \/ _` | '__\/ __\| '_ \   "
     print "  / /\  /\ \| |_| || || |_| |  \__ |  __/ ( | | |  |  /__| | | |  "
     print " /_/  \/  \_\_____/|_| \__|_|  |___/\___|\__,_|_|   \___/|_| |_|  "
     print "                                                                  "
-    print "                     MultiSearch Ver. 1.1                         "
-    print "                       Coded by RickGray                          "
-    print "                   rickchen.vip<at>gmail.com                      "
-    print "                                                                  "
-    print "******************************************************************\n"
+    print "                     MultiSearch Ver. 1.2                         "
+    print "                         2014-12-05                               "
+    print "                  rickchen.vip(at)gmail.com                       "
+    print "------------------------------------------------------------------"
 
 
-if __name__ == '__main__':
-    logo()
+def parse_argv():
+    parse = argparse.ArgumentParser(description='Mixed search to extract url,host,ip...')
 
-    parse = argparse.ArgumentParser(description='Multi Search Parse.')
-    parse.add_argument('-b', dest='search_engine', type=str,
-                       help='search engine (google,googlecse,baidu,all)')
-    parse.add_argument('-s', dest='search_string', type=str,
-                       help='the keyword searched')
-    parse.add_argument('-l', dest='limit_number', type=int, default=100,
-                       help='limit number of the results')
-    parse.add_argument('-o', dest='outfile', type=str,
-                       help='restore the results from searching engine')
+    parse.add_argument('-v', '--verbose',
+                       dest='verbose', action='store_true',
+                       help='show more information or not')
     parse.add_argument('--version', action='version',
-                       version='%(prog)s 1.1')
+                       version='%(prog)s 1.2')
 
-    args = parse.parse_args()
+    group = parse.add_argument_group('necessary arguments')
+    group.add_argument('-b',
+                       dest='engine', type=str,
+                       help='search engine (google, googlecse, baidu, zoomeye, all)')
+    group.add_argument('-s',
+                       dest='string', type=str,
+                       help='search keyword')
+    group.add_argument('-t',
+                       dest='start', type=int, default=0,
+                       help='start page to extract')
+    group.add_argument('-l',
+                       dest='limit', type=int, default=100,
+                       help='limit the maximum number of search results')
+    group.add_argument('-o',
+                       dest='outfile', type=str,
+                       help='put the search results output to file')
 
-    if args.search_engine is None:
+    return parse.parse_args()
+
+
+def main():
+    args = parse_argv()
+
+    # verify the search engine provided
+    engine_list = ['google', 'googlecse', 'baidu', 'zoomeye', 'all']
+    if not args.engine or args.engine not in engine_list:
+        cprint('Invalid engine, please specify a search engine.', 'red')
         sys.exit()
+    engine = args.engine
 
-    if args.search_engine not in ('google', 'googlecse', 'baidu', 'all'):
-        print 'Invalid search engine, try with: google, googlecse, baidu or all'
+    # verify the keyword is given or not
+    if not args.string:
+        cprint('None string found, please provide something to search.', 'red')
         sys.exit()
-    engine = args.search_engine
-
-    if args.search_string is None:
-        print 'Please give a string you wanna search for'
-        sys.exit()
-    word = args.search_string
+    word = args.string
 
     if engine == 'google':
-        print '[-] Searching in Google:'
-        search = SearchGoogle(word, args.limit_number, 0)
+        cprint('[-] Searching "%s" in Google:' % word, 'green')
+        search = SearchGoogle(word, args.limit, args.start)
         search.process()
         urls = search.get_url()
         hosts = search.get_host()
 
     elif engine == 'googlecse':
-        print '[-] Searching in Google CSE:'
-        search = SearchGoogle(word, args.limit_number, 0)
+        cprint('[-] Searching "%s" in Google CSE:' % word, 'green')
+        search = SearchGoogle(word, args.limit, args.start)
         search.process_cse()
         urls = search.get_url_cse()
         hosts = search.get_host_cse()
 
     elif engine == 'baidu':
-        print '[-] Searching in Baidu:'
-        search = SearchBaidu(word, args.limit_number, 0)
+        cprint('[-] Searching "%s" in Baidu:' % word, 'green')
+        search = SearchBaidu(word, args.limit, args.start)
         search.process()
         urls = search.get_url()
         hosts = search.get_host()
 
-    else:
-        sys.exit()
+    elif engine == 'zoomeye':
+        cprint('[-] Searching "%s" in ZoomEye:' % word, 'green')
+        search = SearchZoomEye(word, args.limit, args.start)
+        search.process()
+        urls = search.get_url()
+        hosts = search.get_host()
 
-    if args.outfile is not None:
+    elif engine == 'all':
+        cprint('[-] Searching "%s" in All (except Baidu):' % word, 'green')
+        search = SearchGoogle(word, args.limit, args.start)
+        search.process()
+        urls = search.get_url()
+        hosts = search.get_host()
+
+        search = SearchGoogle(word, args.limit, args.start)
+        search.process_cse()
+        urls.extend(search.get_url_cse())
+        hosts.extend(search.get_host_cse())
+
+        search = SearchZoomEye(word, args.limit, args.start)
+        search.process()
+        urls.extend(search.get_url())
+        hosts.extend(search.get_host())
+
+    # put the search results output to file
+    if args.outfile:
         outfile = open(args.outfile, 'w')
 
         outfile.write('[+] Urls found:\n-----------------\n')
@@ -98,3 +137,10 @@ if __name__ == '__main__':
     if hosts:
         for host in hosts:
             print host
+
+    print '\nTotal %d Urls, %d Hosts' % (urls.__len__(), hosts.__len__())
+
+
+if __name__ == '__main__':
+    # logo()
+    main()
