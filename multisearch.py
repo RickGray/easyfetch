@@ -7,6 +7,7 @@ import sys
 from lib.googlesearch import *
 from lib.baidusearch import *
 from lib.zoomeyesearch import *
+from lib.sogousearch import *
 
 
 def logo():
@@ -35,7 +36,7 @@ def parse_argv():
     group = parse.add_argument_group('necessary arguments')
     group.add_argument('-b',
                        dest='engine', type=str,
-                       help='search engine (google, googlecse, baidu, zoomeye, all)')
+                       help='search engine (google, googlecse, baidu, zoomeye, sogou, all)')
     group.add_argument('-s',
                        dest='string', type=str,
                        help='search keyword')
@@ -56,7 +57,7 @@ def main():
     args = parse_argv()
 
     # verify the search engine provided
-    engine_list = ['google', 'googlecse', 'baidu', 'zoomeye', 'all']
+    engine_list = ['google', 'googlecse', 'baidu', 'zoomeye', 'sogou', 'all']
     if not args.engine or args.engine not in engine_list:
         cprint('Invalid engine, please specify a search engine.', 'red')
         sys.exit()
@@ -92,6 +93,13 @@ def main():
     elif engine == 'zoomeye':
         cprint('[-] Searching "%s" in ZoomEye:' % word, 'green')
         search = SearchZoomEye(word, args.limit, args.start)
+        search.process()
+        urls = search.get_url()
+        hosts = search.get_host()
+
+    elif engine == 'sogou':
+        cprint('[-] Searching "%s" in Sogou:' % word, 'green')
+        search = SearchSogou(word, args.limit, args.start)
         search.process()
         urls = search.get_url()
         hosts = search.get_host()

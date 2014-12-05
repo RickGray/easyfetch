@@ -11,7 +11,7 @@ from termcolor import cprint
 from lxml import html
 
 
-# default headers for each request with google search
+# default headers for each request with zoomeye search
 default_headers = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
     'Accept-Language': 'zh-cn,zh;q=0.8,en-us;q=0.5,en;q=0.3',
