@@ -2,4 +2,3 @@
 .gitignore
 .idea/
 *.pyc
-urls.txt
