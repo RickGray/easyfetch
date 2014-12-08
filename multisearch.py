@@ -121,6 +121,11 @@ def main():
         urls.extend(search.get_url())
         hosts.extend(search.get_host())
 
+        search = SearchSogou(word, args.limit, args.start)
+        search.process()
+        urls.extend(search.get_url())
+        hosts.extend(search.get_host())
+
     # put the search results output to file
     if args.outfile:
         outfile = open(args.outfile, 'w')
