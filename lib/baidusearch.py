@@ -93,19 +93,6 @@ class SearchBaidu(object):
                 pre_urls = doc.xpath('//div[@class="result c-container "]/h3/a/@href')
 
                 def resolve(pre_url):
-                    """
-                    try:
-                        url = urllib2.urlopen(pre_url, timeout=request_timeout).url
-                    except socket.timeout:
-                        return
-                    except socket.error:
-                        return
-                    except urllib2.HTTPError:
-                        return
-                    except urllib2.URLError:
-                        return
-                    """
-
                     try:
                         response = requests.get(pre_url, headers=default_headers, timeout=request_timeout)
                         url = response.url
