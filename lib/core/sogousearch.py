@@ -67,7 +67,7 @@ class SearchSogou(object):
             for c in self.totalresults:
                 try:
                     doc = html.document_fromstring(c)
-                except lxml.etree.XMLSyntaxError:
+                except Exception:
                     continue
                 pre_urls = doc.xpath(
                     '//div[@class="results"]/div[@class="rb"]/h3/a/@href')
