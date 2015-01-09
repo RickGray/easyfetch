@@ -83,8 +83,8 @@ class SearchZoomEye(object):
             for c in self.totalresults:
                 try:
                     doc = html.document_fromstring(c)
-                except lxml.etree.XMLSyntaxError:
-                    continue
+                except Exception:
+                    return
                 pre_urls = doc.xpath(
                     '//div[@class="result-list"]/ul[@class="result web"]/li/h3/a/@href')
 

@@ -171,6 +171,9 @@ class SearchGoogle(object):
 
         return urls
 
+    def get_base_url(self):
+        pass
+
     def get_host(self):
         hosts = []
         if self.totalurls:

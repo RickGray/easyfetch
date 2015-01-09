@@ -96,13 +96,7 @@ class SearchBaidu(object):
                     try:
                         response = requests.get(pre_url, headers=default_headers, timeout=request_timeout)
                         url = response.url
-                    except requests.exceptions.ConnectionError:
-                        return
-                    except requests.exceptions.TooManyRedirects:
-                        return
-                    except requests.exceptions.ReadTimeout:
-                        return
-                    except socket.error:
+                    except Exception:
                         return
 
                     urls.append(url)
@@ -126,3 +120,4 @@ class SearchBaidu(object):
                     continue
 
         return hosts
+
