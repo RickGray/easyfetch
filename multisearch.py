@@ -2,12 +2,13 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
 
-from lib.googlesearch import *
-from lib.baidusearch import *
-from lib.zoomeyesearch import *
-from lib.sogousearch import *
+from lib.core.googlesearch import *
+from lib.core.baidusearch import *
+from lib.core.zoomeyesearch import *
+from lib.core.sogousearch import *
+
+#from lib.plugin.utils import url2base, url2domain
 
 
 def logo():
@@ -126,7 +127,12 @@ def main():
         urls.extend(search.get_url())
         hosts.extend(search.get_host())
 
+    # duplicate handle
+    urls = {}.fromkeys(urls).keys()
+    hosts = {}.fromkeys(hosts).keys()
+
     # put the search results output to file
+
     if args.outfile:
         outfile = open(args.outfile, 'w')
 
@@ -151,9 +157,9 @@ def main():
         for host in hosts:
             print host
 
-    print '\nTotal %d Urls, %d Hosts' % (urls.__len__(), hosts.__len__())
+    cprint('\nTotal %d Urls, %d Hosts' % (urls.__len__(), hosts.__len__()), 'green')
 
 
 if __name__ == '__main__':
-    # logo()
+    #logo()
     main()
